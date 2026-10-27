@@ -81,7 +81,7 @@ class _LetterHomePageState extends State<LetterHomePage> {
 static final _apiBaseUrl = Uri.parse(
   const String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://campus-letter.onrender.com/api',
+    defaultValue: 'https://campus-letter.onrender.com',
   ),
 );
 
