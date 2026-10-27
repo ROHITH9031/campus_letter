@@ -16,7 +16,16 @@ export function createApp({
   const service = new LetterService(repository);
 
   app.use(helmet());
-  app.use(cors({ origin: config.clientOrigin, methods: ['GET', 'POST', 'PATCH', 'DELETE'] }));
+  app.use(cors({
+    origin: (origin, callback) => {
+      if (!origin || config.clientOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error('Origin is not allowed by CORS'));
+    },
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }));
   app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, standardHeaders: 'draft-8' }));
   app.use(express.json({ limit: '100kb' }));
   app.get('/', (_request, response) => {

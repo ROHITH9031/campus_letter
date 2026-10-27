@@ -78,12 +78,13 @@ class _LetterHomePageState extends State<LetterHomePage> {
   int tabIndex = 0;
   bool loadingSavedLetters = false;
 
-static final _apiBaseUrl = Uri.parse(
-  const String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'https://campus-letter.onrender.com',
-  ),
-);
+  static final _apiBaseUrl = Uri.parse(
+    const String.fromEnvironment(
+      'API_BASE_URL',
+      defaultValue: 'https://campus-letter.onrender.com/api',
+    ),
+  );
+  static const _apiAuthToken = String.fromEnvironment('API_AUTH_TOKEN');
 
   @override
   void initState() {
@@ -593,6 +594,17 @@ $sender''';
   String? _requiredValidator(String? value) =>
       value == null || value.trim().isEmpty ? 'This field is required' : null;
 
+  Uri _apiUri(String endpoint) {
+    final basePath = _apiBaseUrl.path.replaceFirst(RegExp(r'/$'), '');
+    final apiPath = basePath.endsWith('/api') ? basePath : '$basePath/api';
+    return _apiBaseUrl.replace(path: '$apiPath/$endpoint');
+  }
+
+  Map<String, String> _apiHeaders() => {
+    'Content-Type': 'application/json',
+    if (_apiAuthToken.isNotEmpty) 'Authorization': 'Bearer $_apiAuthToken',
+  };
+
   Future<void> _selectDate(ValueChanged<String> onChanged) async {
     final selected = await showDatePicker(
       context: context,
@@ -652,8 +664,8 @@ $sender''';
     try {
       final response = await http
           .post(
-            _apiBaseUrl.replace(path: '${_apiBaseUrl.path}/letters'),
-            headers: {'Content-Type': 'application/json'},
+            _apiUri('letters'),
+            headers: _apiHeaders(),
             body: jsonEncode(_letterPayload()),
           )
           .timeout(const Duration(seconds: 10));
@@ -711,7 +723,7 @@ $sender''';
     setState(() => loadingSavedLetters = true);
     try {
       final response = await http
-          .get(_apiBaseUrl.replace(path: '${_apiBaseUrl.path}/letters'))
+          .get(_apiUri('letters'), headers: _apiHeaders())
           .timeout(const Duration(seconds: 10));
       if (response.statusCode != 200) {
         throw Exception('API returned status ${response.statusCode}');

@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
+import { config } from '../src/config.js';
+
+config.requireAuth = false;
 
 function createMemoryRepository() {
   const letters = [];
@@ -41,7 +44,6 @@ test('reports API health', async () => {
 test('rejects invalid JWTs when authentication is enabled', async () => {
   const previous = process.env.REQUIRE_AUTH;
   process.env.REQUIRE_AUTH = 'true';
-  const { config } = await import('../src/config.js');
   const original = config.requireAuth;
   config.requireAuth = true;
   const response = await request(createApp({ repository: createMemoryRepository() }))
@@ -63,6 +65,7 @@ test('creates, reads, updates, filters, and deletes a letter', async () => {
   const app = createApp({ repository: createMemoryRepository() });
   const createResponse = await request(app).post('/api/letters').send({
     type: 'normal',
+    date: '27/10/2026',
     recipient: 'Dean - Academics',
     institution: 'SRKR Engineering College',
     subject: 'Attendance request',
@@ -99,4 +102,13 @@ test('rejects invalid letter input', async () => {
     .send({ type: 'unknown' });
   assert.equal(response.status, 400);
   assert.match(response.body.error.message, /type/);
+});
+
+test('rejects incomplete letter input', async () => {
+  const response = await request(createApp({ repository: createMemoryRepository() }))
+    .post('/api/letters')
+    .send({ type: 'normal', subject: 'Missing required fields' });
+  assert.equal(response.status, 400);
+  assert.equal(response.body.error.message, 'Invalid letter fields');
+  assert.ok(response.body.error.details.date);
 });

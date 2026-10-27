@@ -33,9 +33,14 @@ export function validateLetterInput(input, { partial = false } = {}) {
   const fields = fieldsByType[input.type] ?? Object.values(fieldsByType).flat();
   const details = {};
   for (const field of fields) {
-    if (!(field in input)) continue;
+    if (!(field in input)) {
+      if (!partial) details[field] = 'is required';
+      continue;
+    }
     if (typeof input[field] !== 'string') {
       details[field] = 'must be a string';
+    } else if (input[field].trim().length === 0) {
+      details[field] = 'is required';
     } else if (input[field].length > 5000) {
       details[field] = 'must be 5000 characters or fewer';
     }

@@ -5,9 +5,12 @@ import { fileURLToPath } from 'node:url';
 const backendRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 export const config = {
-  host: process.env.HOST ?? '127.0.0.1',
+  host: process.env.HOST ?? '0.0.0.0',
   port: Number.parseInt(process.env.PORT ?? '3000', 10),
-  clientOrigin: process.env.CLIENT_ORIGIN ?? 'http://localhost:8080',
+  clientOrigins: (process.env.CLIENT_ORIGIN ?? 'http://localhost:8080')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
   dataFile: path.resolve(backendRoot, process.env.DATA_FILE ?? './data/letters.json'),
   mongoUri: process.env.MONGO_URI ?? '',
   jwtSecret: process.env.JWT_SECRET ?? '',

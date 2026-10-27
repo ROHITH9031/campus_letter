@@ -53,6 +53,19 @@ flutter run
 The app supports home, create, preview, save, copy, download, and saved-letter
 flows. The current Flutter UI keeps its form state locally.
 
+The deployed API URL is configured at build time. The default is
+`https://campus-letter.onrender.com/api`; for another deployment, use:
+
+```powershell
+flutter build web `
+  --dart-define=API_BASE_URL=https://your-api.example/api `
+  --dart-define=API_AUTH_TOKEN=<jwt-for-the-configured-user>
+```
+
+`API_AUTH_TOKEN` is only needed when the backend has `REQUIRE_AUTH=true`.
+Prefer a real sign-in flow for multi-user production deployments rather than
+embedding a long-lived token in a public Flutter web build.
+
 ## Run the backend locally
 
 ```powershell
